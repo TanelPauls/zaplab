@@ -1,0 +1,76 @@
+services:
+  nginx:
+    image: nginx:stable
+    volumes:
+      - ./infra/nginx/nginx.dev.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    networks:
+      - zaplab
+
+  cloudflared:
+    build: ./infra/cloudflared
+    environment:
+      - CLOUDFLARE_TUNNEL_ID=${CLOUDFLARE_TUNNEL_ID}
+      - CLOUDFLARED_URL=${CLOUDFLARED_URL}
+    volumes:
+      - ./infra/cloudflared:/infra/cloudflared
+    command: -c "
+      envsubst < config.yml.template > config.yml &&
+      exec cloudflared --config config.yml tunnel run
+      "
+    depends_on:
+      - nginx
+    restart: unless-stopped
+    networks:
+      - zaplab
+
+  frontend:
+    image: rust:1.95-slim-bookworm
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend_cargo_cache:/usr/local/cargo/registry
+      - frontend_target_cache:/app/target
+    environment:
+      - CARGO_BUILD_JOBS=1
+    command: bash -c "sleep 300 && rustup target add wasm32-unknown-unknown && cargo install trunk && trunk serve --address 0.0.0.0 --port 8080"
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 1500m
+    restart: unless-stopped
+    networks:
+      - zaplab
+
+  backend:
+    image: rust:1.95-slim-bookworm
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - backend_cargo_cache:/usr/local/cargo/registry
+      - backend_target_cache:/app/target
+    environment:
+      - CARGO_BUILD_JOBS=1
+    command: bash -c "cargo install cargo-watch && cargo watch -x run"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    restart: unless-stopped
+    networks:
+      - zaplab
+
+volumes:
+  frontend_cargo_cache:
+  frontend_target_cache:
+  backend_cargo_cache:
+  backend_target_cache:
+
+networks:
+  zaplab:
+    driver: bridge
