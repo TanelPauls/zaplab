@@ -1,0 +1,3 @@
+infra/cloudflared/*.json
+infra/cloudflared/config.yml
+.env

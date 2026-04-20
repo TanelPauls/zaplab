@@ -1,0 +1,37 @@
+services:
+  nginx:
+    image: nginx:stable
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf
+    restart: unless-stopped
+    networks:
+      - zaplab
+
+  cloudflared:
+    build: ./infra/cloudflared
+    environment:
+      - CLOUDFLARE_TUNNEL_ID=${CLOUDFLARE_TUNNEL_ID}
+      - CLOUDFLARED_URL=${CLOUDFLARED_URL}
+    volumes:
+      - ./infra/cloudflared:/infra/cloudflared
+    command: -c "
+      envsubst < config.yml.template > config.yml &&
+      exec cloudflared --config config.yml tunnel run
+      "
+    depends_on:
+      - nginx
+    restart: unless-stopped
+    networks:
+      - zaplab
+  
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    networks:
+      - zaplab
+    
+
+networks:
+  zaplab:
+    driver: bridge

@@ -1,0 +1,8 @@
+tunnel: ${CLOUDFLARE_TUNNEL_ID}
+credentials-file: /infra/cloudflared/${CLOUDFLARE_TUNNEL_ID}.json
+
+ingress:
+  - hostname: "${CLOUDFLARED_URL}"
+    service: http://nginx:80
+
+  - service: http_status:404
