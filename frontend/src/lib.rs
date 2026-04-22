@@ -9,7 +9,7 @@ fn App() -> impl IntoView {
     let width = RwSignal::new(5u32);
     let height = RwSignal::new(5u32);
 
-    let maze = create_memo(move |_| {
+    let maze = Memo::new(move |_| {
         ellers(width.get() as usize, height.get() as usize)
     });
 
