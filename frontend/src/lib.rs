@@ -20,14 +20,48 @@ fn App() -> impl IntoView {
 
     view! {
         <h1>"WELCOME"</h1>
-        <Slider label="Width" min=3 max=10 value=width />
-        <Slider label="Height" min=3 max=10 value=height />
-        <div>
-            {move || {
-                let (h, v) = maze.get();
-                format!("{:?}", h)
-            }}
+        <Slider label="Width" min=3 max=25 value=width />
+        <Slider label="Height" min=3 max=25 value=height />
+
+        <div
+            id="maze"
+            style=move || {
+                let (h, _) = maze.get();
+                format!(
+                    "grid-template-columns: repeat({}, 40px);",
+                    h[0].len()
+                )
+            }
+        >
+            {
+                move || {
+                    let (h, v) = maze.get();
+
+                    let height = h.len() - 1;
+                    let width = h[0].len();
+
+                    (0..height)
+                        .flat_map(|r| {
+                            let h = h.clone();
+                            let v = v.clone();
+                            (0..width).map(move |c| {
+                                let mut classes = vec!["cell"];
+
+                                if h[r][c] { classes.push("top"); }
+                                if h[r + 1][c] { classes.push("bottom"); }
+                                if v[r][c] { classes.push("left"); }
+                                if v[r][c + 1] { classes.push("right"); }
+
+                                view! {
+                                    <div class=classes.join(" ")></div>
+                                }
+                            })
+                        })
+                        .collect_view()
+                }
+            }
         </div>
+
     }
 }
 
@@ -69,31 +103,39 @@ fn ellers(width: usize, height: usize) -> (Vec<Vec<bool>>, Vec<Vec<bool>>) {
             }
         }
 
+        if row == height - 1 {
+            // FINAL ROW: force merge all adjacent cells with different sets, no vertical openings
+            for col in 0..width - 1 {
+                if sets[col] != sets[col + 1] {
+                    v[row][col + 1] = false;
+                    let old = sets[col + 1];
+                    let new = sets[col];
+                    for i in 0..width {
+                        if sets[i] == old { sets[i] = new; }
+                    }
+                }
+            }
+            break;
+        }
+
         // --- STEP 2: vertical connections ---
         let mut down_open = vec![false; width];
 
-        // ensure at least one per set
         for i in 0..width {
             if !down_open.iter().enumerate().any(|(j, &b)| b && sets[j] == sets[i]) {
                 let candidates: Vec<usize> = (0..width)
                     .filter(|&j| sets[j] == sets[i])
                     .collect();
-
                 let chosen = candidates[rng.random_range(0..candidates.len())];
                 down_open[chosen] = true;
             }
         }
 
-        // random additional openings
         for i in 0..width {
-            if rng.random_bool(0.5) {
-                down_open[i] = true;
-            }
+            if rng.random_bool(0.5) { down_open[i] = true; }
         }
 
-        // apply vertical openings + build next row sets
         let mut new_sets = vec![0; width];
-
         for i in 0..width {
             if down_open[i] {
                 h[row + 1][i] = false;
@@ -105,23 +147,6 @@ fn ellers(width: usize, height: usize) -> (Vec<Vec<bool>>, Vec<Vec<bool>>) {
         }
 
         sets = new_sets;
-    }
-
-    // --- FINAL ROW: force full connection ---
-    let last = height - 1;
-    for col in 0..width - 1 {
-        if sets[col] != sets[col + 1] {
-            v[last][col + 1] = false;
-
-            let old = sets[col + 1];
-            let new = sets[col];
-
-            for i in 0..width {
-                if sets[i] == old {
-                    sets[i] = new;
-                }
-            }
-        }
     }
 
     (h, v)

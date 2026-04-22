@@ -3,11 +3,31 @@
   <head>
     <meta charset="utf-8"/>
     <title>Zaplab</title>
-  <link rel="modulepreload" href="/frontend-882ad1a446750c04.js" crossorigin="anonymous" integrity="sha384-6M8Lgekvtm7Rok2YvfsnkNdMyUjcGM8KJ+WuiGhVFjPk+jWn8l2XEdyRMa5HLpoJ"><link rel="preload" href="/frontend-882ad1a446750c04_bg.wasm" crossorigin="anonymous" integrity="sha384-nxTFF91tyryviN8gFhuLoe7VFHOsJDmokW198VsT+CDqQbVmXXXNAngHwSWfZ+tm" as="fetch" type="application/wasm"></head>
+    <style>
+      body {
+        #maze {
+          display: grid;
+          grid-template-columns: repeat(5, 40px);
+          grid-template-rows: repeat(4, 40px);
+        }
+
+        .cell {
+          width: 40px;
+          height: 40px;
+          box-sizing: border-box;
+        }
+
+        .top { border-top: 2px solid black; }
+        .right { border-right: 2px solid black; }
+        .bottom { border-bottom: 2px solid black; }
+        .left { border-left: 2px solid black; }
+      }
+    </style>
+  <link rel="modulepreload" href="/frontend-eb53d83e050dfdbe.js" crossorigin="anonymous" integrity="sha384-PMd0hPFfvvQdLrcxx8SBTyoKMlcAAoOUJC+OkqsirkXeUvoerMGiEOwIFb8JlF84"><link rel="preload" href="/frontend-eb53d83e050dfdbe_bg.wasm" crossorigin="anonymous" integrity="sha384-PzjWqDSlEbSwJ+085XwAG/8cANUK/qGWgSKNI5z+iVPcm7u7od5kNGjJATd2sxtM" as="fetch" type="application/wasm"></head>
   <body>
 <script type="module">
-import init, * as bindings from '/frontend-882ad1a446750c04.js';
-const wasm = await init({ module_or_path: '/frontend-882ad1a446750c04_bg.wasm' });
+import init, * as bindings from '/frontend-eb53d83e050dfdbe.js';
+const wasm = await init({ module_or_path: '/frontend-eb53d83e050dfdbe_bg.wasm' });
 
 
 window.wasmBindings = bindings;
