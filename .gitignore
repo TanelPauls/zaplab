@@ -1,3 +1,6 @@
 infra/cloudflared/*.json
 infra/cloudflared/config.yml
 .env
+frontend/dist/
+frontend/target/
+backend/target/
